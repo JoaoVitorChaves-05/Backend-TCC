@@ -20,3 +20,5 @@ class App {
         this.app.use('/user')
     }
 }
+
+export default new App().app
