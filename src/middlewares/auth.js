@@ -35,7 +35,6 @@ class Auth {
 
         if (match) {
             const token = jwt.sign({id: result.user_id}, process.env.SECRET_KEY)
-            console.log(this)
             this.sessions.push({user_id: result.user_id, token: token})
             res.status(200).json({message: 'Session created.', token: token, auth: true})
             return

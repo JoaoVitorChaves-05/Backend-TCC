@@ -2,8 +2,8 @@ import requests
 
 url = "http://localhost:3000/user/signUp"
 data = {
-    'cpf': '39897883886',
-    'password': 'senha123'
+    'cpf': '39897883887',
+    'password': 'senha1234'
 }
 
 x = requests.post(url, json = data)

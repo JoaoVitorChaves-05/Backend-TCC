@@ -22,6 +22,7 @@ class User {
 
         const password_hash = bcryptjs.hashSync(password)
         databaseFake.users.push({id: databaseFake.users.length + 1, cpf, password_hash})
+        console.log(databaseFake.users)
 
         res.status(200).json({message: 'User created successfully. Please enter your credentials to continue.', auth: null, token: null})
     }
