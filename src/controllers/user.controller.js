@@ -20,8 +20,8 @@ class User {
     createUser(req, res) {
         const {cpf, password} = req.body
 
-        const password_hash = bcryptjs.hash(password, process.env.SECRET_KEY)
-        databaseFake.users.push({cpf, password_hash})
+        const password_hash = bcryptjs.hashSync(password)
+        databaseFake.users.push({id: databaseFake.users.length + 1, cpf, password_hash})
 
         res.status(200).json({message: 'User created successfully. Please enter your credentials to continue.', auth: null, token: null})
     }
