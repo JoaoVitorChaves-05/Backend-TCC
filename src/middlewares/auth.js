@@ -11,6 +11,24 @@ class Auth {
         this.createSession = this.createSession.bind(this)
     }
 
+    userExists(req, res, next) {
+        const { email } = req.body
+
+        const result = databaseFake.users.find(el => el.email == email)
+
+        if (result) {
+            res.status(200).json({
+                message: 'This email is already registered',
+                token: null,
+                auth: false
+            })
+            return
+        }
+
+        next()
+        return
+    }
+
     validateSession(req, res, next) {
         const token = req.body.token
 

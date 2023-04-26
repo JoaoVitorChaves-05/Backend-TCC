@@ -4,11 +4,13 @@ import auth from "../middlewares/auth.js"
 
 const router = new Router()
 
-router.get('/data', auth.validateSession, User.getUser)
+router.get('/', auth.validateSession, User.getUser)
+router.put('/', auth.validateSession, User.updateUser)
+router.post('/', auth.userExists, User.createUser)
+
+router.get('/groups', auth.validateSession, )
 
 router.post('/signIn', auth.createSession)
-
-router.post('/signUp', User.createUser)
 
 router.get('/teste', (req, res) => res.send('<h1>Hi</h1>'))
 

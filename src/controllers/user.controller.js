@@ -9,6 +9,28 @@ class User {
 
     }
 
+    updateUser(req, res) {
+        const user_id = res.locals.user_id
+        const data = req.body
+
+        if (data.newPassword) {
+            // update with new password
+            res.status(200).json({ 
+                message: 'The credentials has changed with succesfully.',
+                token: null,
+                auth: true
+            })
+            return
+        }
+
+        // update without new password
+        res.status(200).json({
+            message: 'The credentials has changed with succesfully.',
+            token: null,
+            auth: true
+        })
+    }
+
     getUser(req, res) {
         const user_id = res.locals.user_id
 
