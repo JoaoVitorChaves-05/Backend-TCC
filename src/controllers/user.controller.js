@@ -1,6 +1,6 @@
 import databaseFake from "../database/databaseFake.js"
-import bcryptjs from "bcryptjs"
 import dotenv from "dotenv"
+import UserModel from "../models/user.model.js"
 
 dotenv.config()
 
@@ -9,23 +9,20 @@ class User {
 
     }
 
-    updateUser(req, res) {
+    async updateUser(req, res) {
         const user_id = res.locals.user_id
         const data = req.body
 
-        if (data.newPassword) {
-            // update with new password
-            res.status(200).json({ 
-                message: 'The credentials has changed with succesfully.',
-                token: null,
-                auth: true
-            })
-            return
-        }
+        const result = await UserModel.update({
+            user_id: user_id,
+            email: data.email,
+            username: data.username,
+            newPassword: (() => data.password ? data.password : null)()
+        })
 
         // update without new password
         res.status(200).json({
-            message: 'The credentials has changed with succesfully.',
+            message: result.message,
             token: null,
             auth: true
         })
@@ -39,14 +36,12 @@ class User {
         res.status(200).json(result)
     }
 
-    createUser(req, res) {
-        const {cpf, password} = req.body
+    async createUser(req, res) {
+        const {email, username, password} = req.body
 
-        const password_hash = bcryptjs.hashSync(password)
-        databaseFake.users.push({id: databaseFake.users.length + 1, cpf, password_hash})
-        console.log(databaseFake.users)
+        const result = await UserModel.create({email, username, password})
 
-        res.status(200).json({message: 'User created successfully. Please enter your credentials to continue.', auth: null, token: null})
+        res.status(200).json({message: result.message, auth: null, token: null})
     }
 }
 
