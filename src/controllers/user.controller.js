@@ -1,4 +1,3 @@
-import databaseFake from "../database/databaseFake.js"
 import dotenv from "dotenv"
 import UserModel from "../models/user.model.js"
 
@@ -20,7 +19,6 @@ class User {
             newPassword: (() => data.password ? data.password : null)()
         })
 
-        // update without new password
         res.status(200).json({
             message: result.message,
             token: null,
@@ -28,10 +26,10 @@ class User {
         })
     }
 
-    getUser(req, res) {
+    async getUser(req, res) {
         const user_id = res.locals.user_id
 
-        const result = databaseFake.users.find(user => user.id === user_id)
+        const result = await UserModel.getUser({user_id: user_id})
 
         res.status(200).json(result)
     }
@@ -42,6 +40,18 @@ class User {
         const result = await UserModel.create({email, username, password})
 
         res.status(200).json({message: result.message, auth: null, token: null})
+    }
+
+    async deleteUser(req, res) {
+        const {user_id} = res.locals
+
+        const result = await UserModel.destroyUser({user_id: user_id})
+
+        res.status(200).json({
+            message: result.message,
+            auth: null,
+            token: null
+        })
     }
 }
 

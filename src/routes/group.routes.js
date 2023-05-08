@@ -4,4 +4,4 @@ import auth from "../middlewares/auth.js"
 
 const router = new Router()
 
-router.get('/', auth)
+router.get('/', auth.validateSession, )

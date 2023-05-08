@@ -30,7 +30,7 @@ export default class UserModel {
         
         if (validateData([email, username, password])) {
             const passwordHash = bcrypt.hashSync(password)
-            await database.models.create({email, user_name: username, password: passwordHash})
+            await database.models.Users.create({email, user_name: username, password: passwordHash})
             return { message: 'User created successfully. Please enter your credentials to continue' }
         }
 
@@ -65,5 +65,21 @@ export default class UserModel {
         }
 
         return { message: 'The data has an error. Please try again.' }
+    }
+
+    static async getUser({user_id}) {
+        const user = await database.models.Users.findOne({
+            where: {user_id: user_id}
+        })
+
+        return user
+    }
+
+    static async destroyUser({user_id}) {
+        await database.models.Admins.destroy({where: {user_id: user_id}})
+        await database.models.Users.destroy({where: {user_id: user_id}})
+        await database.models.Authorized.destroy({where: {user_id: user_id}})
+
+        return {message: 'The user was deleted with successfully'}
     }
 }
