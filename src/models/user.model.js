@@ -24,7 +24,7 @@ const thisDataExists = async (data) => {
 export default class UserModel {
     static async create({email, username, password}) {
         
-        const dataExists = thisDataExists({email, username})
+        const dataExists = await thisDataExists({email, username})
         if (dataExists.status)
             return dataExists.message
         
