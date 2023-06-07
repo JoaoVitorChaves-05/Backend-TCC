@@ -169,7 +169,38 @@ export default class GroupModel {
         return { message: 'The user has already in this group' }
     }
 
-    static async removeUser({user_id, group_id}) {
-        
+    static async removeUser({user_admin_id, user_id, group_id}) {
+        const user = await database.models.Authorized.findOne({
+            where: {
+                user_id: user_admin_id
+            }
+        })
+
+        if (!user) {
+            await database.models.Authorized.destroy({
+                where: {
+                    user_id: user_id
+                }
+            })
+
+            return { message: 'The user has been removed.' }
+        }
+
+        return { message: 'You can not authorized to remove this user.' }
+    }
+
+    static async addCamera({user_id, camera_id, group_id}) {
+        const camera = await database.models.Cameras.findOne({
+            where: {
+                camera_id: camera_id
+            }
+        })
+
+        if (!camera) {
+            await database.models.Cameras.create({
+                group_id,
+                camera_id
+            })
+        }
     }
 }
