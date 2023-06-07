@@ -86,13 +86,17 @@ class Group {
         const { camera_id, group_id } = req.body
         const { user_id } = res.locals
 
-        const result = await GroupModel.addCamera({group_id, camera_id})
+        const result = await GroupModel.addCamera({group_id, camera_id, user_id})
 
         res.status(200).json(result)
     }
 
     async removeCamera(req, res) {
+        const { camera_id, group_id } = req.body
 
+        const result = await GroupModel.removeCamera({group_id, camera_id})
+
+        res.status(200).json(result)
     }
 }
 

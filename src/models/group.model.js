@@ -201,6 +201,24 @@ export default class GroupModel {
                 group_id,
                 camera_id
             })
+
+            return { message: 'The camera has been added.' }
         }
+
+        return { message: 'This camera has already in another group' }
+    }
+
+    static async removeCamera({user_id, group_id, camera_id}) {
+        if (user_id && group_id && camera_id) {
+            await database.models.Cameras.destroy({
+                where: {
+                    group_id: group_id
+                }
+            })
+
+            return { message: 'The camera has been removed.' }
+        }
+
+        return { message: 'The camera could not be removed. Try again later.' }
     }
 }
