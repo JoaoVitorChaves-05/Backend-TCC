@@ -147,6 +147,26 @@ class Database {
 
         await this.models.Biometry.sync()
 
+        this.models.Photo = this.connection.define('Photo', {
+            id: { 
+                type: DataTypes.INTEGER, 
+                primaryKey: true,
+                autoIncrement: true
+            },
+            user_id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                references: {
+                    model: this.models.Users,
+                    key: 'user_id'
+                }
+            },
+            photo_path: {
+                type: DataType.STRING,
+                allowNull: false
+            }
+        })
+
     }
 }
 
