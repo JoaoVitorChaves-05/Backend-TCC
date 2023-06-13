@@ -13,11 +13,32 @@ class Security {
 
     async checkFace(req, res) {
         const { camera_id } = req.body
-        const file = req.file
+        const file = req.file.filename
 
+        if (camera_id) {
+            const users = await SecurityModel.selectUsersForCamera({ camera_id })
+            const result = await axios.post('http://localhost:8080/face', { users: users, path: '../../images/compare/' + file})
+    
+            res.status(200).json(result)
+            return
+        }
 
-        const users = await SecurityModel.selectUsers({ camera_id })
-        const result = await axios.post('http://localhost:8080/file')
+        res.status(200).json({ authorized: false })
+    }
+
+    async checkBiometry(req, res) {
+        const { camera_id } = req.body
+        const file = req.file.filename
+
+        if (camera_id) {
+            const users = await SecurityModel.selectUsersForBiomether({ camera_id })
+            const result = await axios.post('http://localhost:8080/biomether', { users: users, path: '../../images/compare/' + file })
+
+            res.status(200).json(result)
+            return
+        }
+
+        res.status(200).json({ authorized: false })
     }
 }
 
