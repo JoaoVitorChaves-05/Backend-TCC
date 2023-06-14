@@ -1,6 +1,5 @@
 import { Router } from "express"
 import Security from "../controllers/security.controller.js"
-import auth from "../middlewares/auth.js"
 import multer from "multer"
 
 const storage = multer.diskStorage({
@@ -19,5 +18,6 @@ const upload = multer({ storage: storage });
 const router = new Router()
 
 router.post('/face', upload.single('file'), Security.checkFace)
+router.post('/biomether', upload.single('file'), Security.checkBiometry)
 
 export default router
