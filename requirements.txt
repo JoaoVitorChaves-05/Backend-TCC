@@ -2,3 +2,4 @@ cmake
 dlib
 opencv-python
 face_recognition
+mysql-connector-python
