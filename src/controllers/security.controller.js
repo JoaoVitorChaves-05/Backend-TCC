@@ -16,8 +16,8 @@ class Security {
         const file = req.file.filename
 
         if (camera_id) {
-            const users = await SecurityModel.selectUsersForCamera({ camera_id })
-            const result = await axios.post('http://localhost:8080/face', { users: users, path: '../../images/compare/' + file})
+            const group_id = await SecurityModel.selectGroup({ camera_id })
+            const result = await axios.post('http://localhost:8080/face', { group_id: group_id, path: '../../uploads/' + file})
     
             res.status(200).json(result)
             return

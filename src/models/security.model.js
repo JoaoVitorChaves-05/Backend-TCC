@@ -1,6 +1,16 @@
 import database from "../database/database.js"
 
 export default class SecurityModel {
+
+    static async selectGroup({camera_id}) {
+        const {Cameras} = database
+
+        const result = await Cameras.findOne({where: {camera_id: camera_id}})
+        then((response) => response.json())
+
+        return result.group_id
+    }
+
     static async selectUsersForCamera({camera_id}) {
         const {Cameras, Groups, Authorized, Photo, Users} = database.models
 
