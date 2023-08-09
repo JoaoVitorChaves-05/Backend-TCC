@@ -1,6 +1,7 @@
 import express from 'express'
 import user from './src/routes/user.routes.js'
 import group from './src/routes/group.routes.js'
+import security from './src/routes/security.routes.js'
 
 class App {
     constructor() {
@@ -20,6 +21,7 @@ class App {
     routes() {
         this.app.use('/user', user)
         this.app.use('/group', group)
+        this.app.use('/security', security)
     }
 }
 
