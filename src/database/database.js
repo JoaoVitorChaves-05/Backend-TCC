@@ -162,7 +162,7 @@ class Database {
                 }
             },
             photo_path: {
-                type: DataType.STRING,
+                type: DataTypes.STRING,
                 allowNull: false
             }
         })

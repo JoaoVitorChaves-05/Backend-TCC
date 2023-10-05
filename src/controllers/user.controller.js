@@ -39,7 +39,7 @@ class User {
 
         const result = await UserModel.create({email, username, password})
 
-        res.status(200).json({message: result.message, auth: null, token: null})
+        res.status(200).json({message: result.message, auth: null, token: null, success: result.success})
     }
 
     async deleteUser(req, res) {

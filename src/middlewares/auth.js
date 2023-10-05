@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import bcryptjs from 'bcryptjs'
-import databaseFake from '../database/databaseFake.js'
+import UserModel from '../models/user.model.js'
 
 dotenv.config()
 
@@ -9,24 +9,6 @@ class Auth {
     constructor() {
         this.sessions = []
         this.createSession = this.createSession.bind(this)
-    }
-
-    userExists(req, res, next) {
-        const { email } = req.body
-
-        const result = databaseFake.users.find(el => el.email == email)
-
-        if (result) {
-            res.status(200).json({
-                message: 'This email is already registered',
-                token: null,
-                auth: false
-            })
-            return
-        }
-
-        next()
-        return
     }
 
     validateSession(req, res, next) {
@@ -45,20 +27,20 @@ class Auth {
     }
 
     createSession(req, res, next) {
-        const {cpf, password} = req.body
+        const {username, password} = req.body
 
-        const result = databaseFake.users.find(el => el.cpf == cpf)
-        
+        const result = UserModel.findUser({username})
+
         const match = bcryptjs.compareSync(password, result.password_hash)
 
-        if (match) {
+        if (match && result) {
             const token = jwt.sign({id: result.user_id}, process.env.SECRET_KEY)
             this.sessions.push({user_id: result.user_id, token: token})
             res.status(200).json({message: 'Session created.', token: token, auth: true})
             return
         }
 
-        res.status(200).json({message: 'CPF or password is incorrect.'})
+        res.status(200).json({message: 'Username or password is incorrect.'})
     }
 
     deleteSession(req, res, next) {

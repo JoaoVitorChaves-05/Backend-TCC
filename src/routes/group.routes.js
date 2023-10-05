@@ -11,3 +11,5 @@ router.delete('/', auth.validateSession, Group.deleteGroup)
 
 router.get('/token', auth.validateSession, Group.createToken)
 router.post('/token', auth.validateSession, Group.addUser)
+
+export default router

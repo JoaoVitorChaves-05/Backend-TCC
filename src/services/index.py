@@ -22,5 +22,6 @@ def add_encoding_route():
     if request.method == 'POST':
         data = request.form.get('data')
         app_controller.app.add_encoding(data)
+
 proccess_photos = Thread(target=app_controller.app.load_all_encodings())
 app.run(port=8080)
