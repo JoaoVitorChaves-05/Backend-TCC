@@ -36,6 +36,7 @@ class User {
 
     async createUser(req, res) {
         const {email, username, password} = req.body
+        console.log(req.body)
 
         const result = await UserModel.create({email, username, password})
 

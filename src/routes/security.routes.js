@@ -1,23 +1,30 @@
 import { Router } from "express"
 import Security from "../controllers/security.controller.js"
 import multer from "multer"
+import fileUpload from "express-fileupload"
+import fs from "fs"
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, '../../uploads');
-    },
-    filename: function (req, file, cb) {
-      // Gere um nome de arquivo único para evitar conflitos
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix);
-    }
+  destination: '../../uploads/',
+  filename: function (req, file, cb) {
+    console.log('File:', file)
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, file.fieldname + '-' + uniqueSuffix)
+  }
 })
 
 const upload = multer({ storage: storage });
 
 const router = new Router()
 
-router.post('/face', upload.single('file'), Security.checkFace)
-router.post('/biomether', upload.single('file'), Security.checkBiometry)
+router.post('/face', fileUpload(), (req, res, next) => {
+  const file = req.files[0]
+  let [filename, ext] = file.name.split('.')
+  const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+
+  file.mv('../../uploads/' + filename + uniqueSuffix + '.' + ext)
+}, Security.checkFace)
+
+router.post('/biomether', upload.single('uploaded_file'), Security.checkBiometry)
 
 export default router

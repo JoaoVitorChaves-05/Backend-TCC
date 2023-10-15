@@ -14,11 +14,13 @@ const thisDataExists = async (data) => {
     })
 
     const findUsername = await database.models.Users.findOne({
-        where: { username: data.username }
+        where: { user_name: data.username }
     })
 
     if (findEmail) return { status: true, message: 'Este email já está cadastrado' }
     if (findUsername) return { status: true, message: 'Este nome de usuário já está cadastrado' } 
+
+    return { status: false, message: 'Usuário não está cadastrado' }
 }
 
 export default class UserModel {
@@ -30,7 +32,8 @@ export default class UserModel {
         
         if (validateData([email, username, password])) {
             const passwordHash = bcrypt.hashSync(password)
-            await database.models.Users.create({email, user_name: username, password: passwordHash})
+            console.log(passwordHash)
+            await database.models.Users.create({email, user_name: username, password_hash: passwordHash})
             return { success: true, message: 'User created successfully. Please enter your credentials to continue' }
         }
 

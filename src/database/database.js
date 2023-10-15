@@ -44,7 +44,8 @@ class Database {
         this.models.Groups = this.connection.define('Groups', {
             group_id: {
                 type: DataTypes.INTEGER,
-                primaryKey: true
+                primaryKey: true,
+                autoIncrement: true
             },
             group_name: {
                 type: DataTypes.STRING,
@@ -99,7 +100,7 @@ class Database {
 
         await this.models.Admins.sync()
 
-        this.models.Authorized = this.connection.define('Authorized', {
+        this.models.Authorized = this.connection.define('Authorizeds', {
             authorized_id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
@@ -147,7 +148,7 @@ class Database {
 
         await this.models.Biometry.sync()
 
-        this.models.Photo = this.connection.define('Photo', {
+        this.models.Photos = this.connection.define('Photos', {
             id: { 
                 type: DataTypes.INTEGER, 
                 primaryKey: true,
@@ -167,6 +168,7 @@ class Database {
             }
         })
 
+        await this.models.Photos.sync()
     }
 }
 

@@ -17,7 +17,7 @@ class App:
     
     def add_encoding(self, user_data):
         cursor = self.conn.cursor()
-        cursor.execute(f"SELECT * FROM Photo WHERE user_id = {user_data.user_id}")
+        cursor.execute(f"SELECT * FROM Photos WHERE user_id = {user_data.user_id}")
 
         result = cursor.fetchOne()
         photo = fr.load_image_file(result.photo_path)
@@ -33,15 +33,16 @@ class App:
 
     def load_all_encodings(self):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT a.user_id, a.group_id, p.photo_path FROM Authorized as a JOIN Photo as p ON a.user_id = p.user_id;")
+        cursor.execute("SELECT a.user_id, a.group_id, p.photo_path FROM Authorizeds as a JOIN Photos as p ON a.user_id = p.user_id;")
         
-        result = cursor.fetchAll()
+        result = cursor.fetchall()
         for row in result:
-            photo_path = row.photo_path
+            photo_path = row[2]
             print("Loading image: ", photo_path)
-            photo = fr.load_image_file(photo_path)
+            photo = fr.load_image_file('../' + '.'+ photo_path)
             try:
                 encode_photo = fr.face_encodings(photo)[0]
+                
                 if (row.group_id in self.encodings.values()):
                     self.encodings[row.group_id].append(encode_photo)
                 else:

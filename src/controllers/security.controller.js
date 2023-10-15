@@ -13,6 +13,8 @@ class Security {
 
     async checkFace(req, res) {
         const { camera_id } = req.body
+        console.log(req.file)
+        console.log(req.files)
         const file = req.file.filename
 
         if (camera_id) {

@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import user from './src/routes/user.routes.js'
 import group from './src/routes/group.routes.js'
 import security from './src/routes/security.routes.js'
@@ -14,6 +15,7 @@ class App {
     }
 
     middleware() {
+        this.app.use(cors())
         this.app.use(express.urlencoded({ extended: false}))
         this.app.use(express.json())
     }
