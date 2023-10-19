@@ -4,14 +4,16 @@ from threading import Thread
 
 app = Flask(__name__)
 
-@app.route('/face', methods=['POST'])
+@app.route('/face', methods=['GET', 'POST'])
 def face_route():
     if request.method == 'POST':
+        print(request.form)
+        print(request.form.get('path'))
         photo = request.form.get('path')
         group_id = request.form.get('group_id')
         user_encoding = app_controller.app.load_user_encodings(photo)
         compare = app_controller.app.compare_encodings(user_encoding, group_id)
-        return {'authorized': compare}
+        return compare
 '''
 @app.route('/biomether', methods=['POST'])
 def biomether_route():

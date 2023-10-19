@@ -2,6 +2,13 @@ import dotenv from "dotenv"
 import GroupModel from "../models/group.model.js"
 import SecurityModel from "../models/security.model.js"
 import axios from "axios"
+import path from "path"
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Obtenha o caminho do diretório do arquivo atual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 dotenv.config()
 
@@ -13,15 +20,23 @@ class Security {
 
     async checkFace(req, res) {
         const { camera_id } = req.body
+        console.log(req.body)
         console.log(req.file)
-        console.log(req.files)
         const file = req.file.filename
 
         if (camera_id) {
             const group_id = await SecurityModel.selectGroup({ camera_id })
-            const result = await axios.post('http://localhost:8080/face', { group_id: group_id, path: '../../uploads/' + file})
+
+            const formData = new FormData()
+            formData.append('group_id', group_id)
+            formData.append('path', path.join(__dirname, '..', '..', 'uploads', file))
+
+            const result = await axios.post('http://127.0.0.1:8080/face', formData)
+            .then(response => response)
+            .catch(err => console.log('erro'))
     
-            res.status(200).json(result)
+            console.log(result.data)
+            res.status(200).json(result.data)
             return
         }
 

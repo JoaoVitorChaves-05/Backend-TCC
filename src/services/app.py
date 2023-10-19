@@ -36,33 +36,34 @@ class App:
         cursor.execute("SELECT a.user_id, a.group_id, p.photo_path FROM Authorizeds as a JOIN Photos as p ON a.user_id = p.user_id;")
         
         result = cursor.fetchall()
+        print(result, len(result))
         for row in result:
             photo_path = row[2]
-            print("Loading image: ", photo_path)
+            print("Loading image: ", '../' + '.'+ photo_path)
             photo = fr.load_image_file('../' + '.'+ photo_path)
             try:
                 encode_photo = fr.face_encodings(photo)[0]
-                
-                if (row.group_id in self.encodings.values()):
-                    self.encodings[row.group_id].append(encode_photo)
+                if (row[1] in self.encodings.values()):
+                    self.encodings[row[1]].append(encode_photo)
                 else:
-                    self.encodings[row.group_id] = []
-                    self.encodings[row.group_id].append(encode_photo)
+                    self.encodings[row[1]] = []
+                    self.encodings[row[1]].append(encode_photo)
+                print(self.encodings)
             except:
                 pass
         cursor.close()
         
-    def load_user_encodings(file):
+    def load_user_encodings(self, file):
         photo = fr.load_image_file(file)
         encode_photo = fr.face_encodings(photo)[0]
         return encode_photo
     
     def compare_encodings(self, user_encoding, group_id):
-        for encoding in self.encodings[group_id]:
+        for encoding in self.encodings[int(group_id)]:
             compare = fr.compare_faces([user_encoding], encoding)
             if compare[0] == True:
-                return True
-        return False
+                return {'status': True}
+        return {'status': False}
 
 app = App()
 app.load_all_encodings()

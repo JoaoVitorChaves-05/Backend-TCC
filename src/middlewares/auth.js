@@ -7,21 +7,21 @@ dotenv.config()
 
 class Auth {
     constructor() {
-        this.sessions = []
-        this.createSession = this.createSession.bind(this)
+
     }
 
     validateSession(req, res, next) {
         const token = req.body.token
 
-        const session = this.sessions.find(session => session.token == token)
+        const result = jwt.verify(token, process.env.SECRET_KEY)
+        //const session = this.sessions.find(session => session.token == token)
 
         if (!session) {
             res.status(200).json({message: 'Invalid session.', token: null, auth: false})
             return
         }
 
-        res.locals.user_id = session.user_id
+        res.locals.user_id = result.user_id
         next()
         return
     }
@@ -34,8 +34,8 @@ class Auth {
         const match = bcryptjs.compareSync(password, result.password_hash)
 
         if (match && result) {
-            const token = jwt.sign({id: result.user_id}, process.env.SECRET_KEY)
-            this.sessions.push({user_id: result.user_id, token: token})
+            const token = jwt.sign({user_id: result.user_id}, process.env.SECRET_KEY)
+            //this.sessions.push({user_id: result.user_id, token: token})
             res.status(200).json({message: 'Session created.', token: token, auth: true})
             return
         }
@@ -44,7 +44,6 @@ class Auth {
     }
 
     deleteSession(req, res, next) {
-        this.sessions = this.sessions.filter(session => session.token != req.body.token)
         next()
     }
 }

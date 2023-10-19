@@ -3,10 +3,12 @@ import database from "../database/database.js"
 export default class SecurityModel {
 
     static async selectGroup({camera_id}) {
-        const {Cameras} = database
+        const {Cameras} = database.models
 
         const result = await Cameras.findOne({where: {camera_id: camera_id}})
-        then((response) => response.json())
+        .then((response) => response)
+
+        console.log(result)
 
         return result.group_id
     }
