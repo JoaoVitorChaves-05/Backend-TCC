@@ -1,5 +1,6 @@
 import dotenv from "dotenv"
 import UserModel from "../models/user.model.js"
+import Upload from "../middlewares/upload.js"
 
 dotenv.config()
 
@@ -36,9 +37,12 @@ class User {
 
     async createUser(req, res) {
         const {email, username, password} = req.body
-        console.log(req.body)
+        const currentPath = Upload.getCurrentPath()
+        console.log(currentPath)
+        console.log('create user:', req.body)
 
         const result = await UserModel.create({email, username, password})
+        
 
         res.status(200).json({message: result.message, auth: null, token: null, success: result.success})
     }

@@ -32,9 +32,8 @@ export default class UserModel {
         
         if (validateData([email, username, password])) {
             const passwordHash = bcrypt.hashSync(password)
-            console.log(passwordHash)
-            await database.models.Users.create({email, user_name: username, password_hash: passwordHash})
-            return { success: true, message: 'User created successfully. Please enter your credentials to continue' }
+            const newUser = await database.models.Users.create({email, user_name: username, password_hash: passwordHash})
+            return { success: true, message: 'User created successfully. Please enter your credentials to continue', newId: newUser.toJSON().user_id}
         }
 
         return { success: false, message: 'The data has an error. Please try again' }
