@@ -24,7 +24,7 @@ const thisDataExists = async (data) => {
 }
 
 export default class UserModel {
-    static async create({email, username, password}) {
+    static async create({email, username, password, path}) {
         
         const dataExists = await thisDataExists({email, username})
         if (dataExists.status)
@@ -33,6 +33,8 @@ export default class UserModel {
         if (validateData([email, username, password])) {
             const passwordHash = bcrypt.hashSync(password)
             const newUser = await database.models.Users.create({email, user_name: username, password_hash: passwordHash})
+            const userId = await newUser.toJSON().user_id
+            await database.models.Photos.create({user_id: userId, photo_path: path})
             return { success: true, message: 'User created successfully. Please enter your credentials to continue', newId: newUser.toJSON().user_id}
         }
 

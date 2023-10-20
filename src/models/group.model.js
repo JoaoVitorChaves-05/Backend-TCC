@@ -58,8 +58,8 @@ export default class GroupModel {
             })
             
             return {
-                administredGroups: administredGroups.dataValues,
-                authorizedGroups: authorizedGroups.dataValues
+                administredGroups: administredGroups.toJSON(),
+                authorizedGroups: authorizedGroups.toJSON()
             }
         }
 

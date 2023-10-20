@@ -32,17 +32,16 @@ class User {
 
         const result = await UserModel.getUser({user_id: user_id})
 
-        res.status(200).json(result)
+        res.status(200).json(result.toJSON())
     }
 
     async createUser(req, res) {
         const {email, username, password} = req.body
-        const currentPath = Upload.getCurrentPath()
-        console.log(currentPath)
-        console.log('create user:', req.body)
+        const filename = req.file.filename
+        const file_path = Upload.createFolder(username)
+        const dest = Upload.moveFile(req.file.path, file_path, filename)
 
-        const result = await UserModel.create({email, username, password})
-        
+        const result = await UserModel.create({email, username, password, photos: './images/' + username + '/' + filename})
 
         res.status(200).json({message: result.message, auth: null, token: null, success: result.success})
     }
