@@ -11,31 +11,39 @@ class Auth {
     }
 
     validateSession(req, res, next) {
-        const token = req.body.token || req.query.token
+        const token = req.body.token ? req.body.token : req.query.token
+
+
+        console.log(token)
 
         const result = jwt.verify(token, process.env.SECRET_KEY)
         //const session = this.sessions.find(session => session.token == token)
 
-        if (!session) {
+        if (!result) {
             res.status(200).json({message: 'Invalid session.', token: null, auth: false})
             return
         }
 
-        res.locals.user_id = result.user_id
+        res.locals.user_id = result
         next()
         return
     }
 
-    createSession(req, res, next) {
+    async createSession(req, res, next) {
         const {username, password} = req.body
+        
+        console.log(req.body)
 
-        const result = UserModel.findUser({username})
+        const result = await UserModel.findUser({username})
+
+        console.log('result', result)
 
         const match = bcryptjs.compareSync(password, result.password_hash)
 
+        console.log('match', match)
+
         if (match && result) {
-            const token = jwt.sign({user_id: result.user_id}, process.env.SECRET_KEY)
-            //this.sessions.push({user_id: result.user_id, token: token})
+            const token = jwt.sign(result.user_id, process.env.SECRET_KEY)
             res.status(200).json({message: 'Session created.', token: token, auth: true})
             return
         }

@@ -14,20 +14,34 @@ class App:
             password='root',
             database='security_system'
         )
-    
-    def add_encoding(self, user_data):
+
+    def hasFace(self, photo_path):
+        try:
+            photo = fr.load_image_file(photo_path)
+            encode_photo = fr.face_encodings(photo)[0]
+            print(encode_photo)
+            return {'status': True}
+        except:
+            return {'status': False}
+        
+    def add_user_to_group(self, user_id, group_id):
         cursor = self.conn.cursor()
-        cursor.execute(f"SELECT * FROM Photos WHERE user_id = {user_data.user_id}")
+        cursor.execute(f"SELECT * FROM Photos WHERE user_id = {user_id}")
 
         result = cursor.fetchOne()
-        photo = fr.load_image_file(result.photo_path)
+        photo_path = result[2]
+        photo = fr.load_image_file('../' + '.'+ photo_path)
+
         try:
+            cursor.close()
             encode_photo = fr.face_encodings(photo)[0]
-            if (user_data.group_id in self.encodings.values()):
-                self.encodings[user_data.group_id].append(encode_photo)
+            if (group_id in self.encodings.values()):
+                self.encodings[group_id].append({'user_id': user_id, 'encode_photo': encode_photo})
+                return {'status': True}
             else:
-                self.encodings[user_data.group_id] = []
-                self.encodings[user_data.group_id].append(encode_photo)
+                self.encodings[group_id] = []
+                self.encodings[group_id].append({'user_id': user_id, 'encode_photo': encode_photo})
+                return {'status': True}
         except:
             pass
 
@@ -44,10 +58,10 @@ class App:
             try:
                 encode_photo = fr.face_encodings(photo)[0]
                 if (row[1] in self.encodings.values()):
-                    self.encodings[row[1]].append(encode_photo)
+                    self.encodings[row[1]].append({'user_id': row[0], 'encode_photo': encode_photo})
                 else:
                     self.encodings[row[1]] = []
-                    self.encodings[row[1]].append(encode_photo)
+                    self.encodings[row[1]].append({'user_id': row[0], 'encode_photo': encode_photo})
                 print(self.encodings)
             except:
                 pass
@@ -60,7 +74,7 @@ class App:
     
     def compare_encodings(self, user_encoding, group_id):
         for encoding in self.encodings[int(group_id)]:
-            compare = fr.compare_faces([user_encoding], encoding)
+            compare = fr.compare_faces([user_encoding], encoding.encode_photo)
             if compare[0] == True:
                 return {'status': True}
         return {'status': False}

@@ -9,7 +9,7 @@ router.post('/', auth.validateSession, Group.createGroup)
 router.put('/', auth.validateSession, Group.updateGroup)
 router.delete('/', auth.validateSession, Group.deleteGroup)
 
-router.get('/token', auth.validateSession, Group.createToken)
-router.post('/token', auth.validateSession, Group.addUser)
+router.get('/key', auth.validateSession, Group.createKey)
+router.post('/key', auth.validateSession, Group.addUser)
 
 export default router

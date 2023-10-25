@@ -38,7 +38,7 @@ export default class GroupModel {
             Groups.hasMany(Admins)
             Admins.belongsTo(Groups, { foreignKey: 'group_id' })
 
-            const administredGroups = await Admins.findAll({ 
+            const result_administredGroups = await Admins.findAll({ 
                 attributes: ['admin_id', 'user_id', 'group_id'],
                 include: {
                     model: Groups,
@@ -46,20 +46,24 @@ export default class GroupModel {
                 } 
             })
 
+            const administredGroups = result_administredGroups.map(admin => admin.toJSON())
+
             Groups.hasMany(Authorized)
             Authorized.belongsTo(Groups, { foreignKey: 'group_id' })
 
-            const authorizedGroups = await Authorized.findAll({
-                attributes: ['authorized_id', 'group_id, user_id'],
+            const result_authorizedGroups = await Authorized.findAll({
+                attributes: ['authorized_id', 'group_id', 'user_id'],
                 include: {
                     model: Groups,
                     attributes: ['group_name']
                 }
             })
+
+            const authorizedGroups = result_authorizedGroups.map(authorized => authorized.toJSON())
             
             return {
-                administredGroups: administredGroups.toJSON(),
-                authorizedGroups: authorizedGroups.toJSON()
+                administredGroups: administredGroups,
+                authorizedGroups: authorizedGroups
             }
         }
 
@@ -130,32 +134,33 @@ export default class GroupModel {
         }
     }
 
-    static async createToken({user_id, group_id}) {
+    static async createKey({user_id, group_id}) {
         const admin = await database.models.Admin.findOne({
             where: {
                 user_id: user_id,
                 group_id: group_id
             }
-        })
+        }).toJSON()
 
         if (admin) {
-            const token = ''
+            const key = ''
 
             for (let n_sorteio = 4; n_sorteio > 0; n_sorteio--) {
                 const number = Math.floor(Math.random() * 10)
-                token += number.toString()
+                key += number.toString()
             }
 
-            return token
+            return key
         }
     }
 
     static async addUser({user_id, group_id}) {
         const user = await database.models.Authorized.findOne({
             where: {
-                user_id: user_id
+                user_id: user_id,
+                group_id: group_id
             }
-        })
+        }).toJSON()
 
         if (!user) {
             await database.models.Authorized.create({
@@ -163,18 +168,19 @@ export default class GroupModel {
                 user_id: user_id
             })
 
-            return { message: 'The user has been added' }
+            return { message: 'The user has been added', status: true }
         }
 
-        return { message: 'The user has already in this group' }
+        return { message: 'The user has already in this group', status: false }
     }
 
     static async removeUser({user_admin_id, user_id, group_id}) {
         const user = await database.models.Authorized.findOne({
             where: {
-                user_id: user_admin_id
+                user_id: user_admin_id,
+                group_id: group_id
             }
-        })
+        }).toJSON()
 
         if (!user) {
             await database.models.Authorized.destroy({
@@ -187,6 +193,25 @@ export default class GroupModel {
         }
 
         return { message: 'You can not authorized to remove this user.' }
+    }
+
+    static async updateToAdmin({user_admin_id, user_id, group_id}) {
+        const isAdmin = await database.models.Admins.findOne({
+            where: {
+                user_id: user_admin_id
+            }
+        }).toJSON()
+
+        if (!isAdmin) {
+            await database.models.Admins.create({
+                user_id,
+                group_id
+            })
+
+            return { message: 'This user is an admin now.' }
+        }
+
+        return { message: 'You can not authorized to update to admin this user.'}
     }
 
     static async addCamera({user_id, camera_id, group_id}) {

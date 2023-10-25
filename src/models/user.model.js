@@ -25,6 +25,8 @@ const thisDataExists = async (data) => {
 
 export default class UserModel {
     static async create({email, username, password, path}) {
+
+        console.log('path', path)
         
         const dataExists = await thisDataExists({email, username})
         if (dataExists.status)
@@ -89,9 +91,9 @@ export default class UserModel {
 
     static async findUser({username}) {
         const user = await database.models.Users.findOne({
-            where: {username: username}
+            where: {user_name: username}
         })
 
-        return user ? true : false
+        return await user.toJSON()
     }
 }

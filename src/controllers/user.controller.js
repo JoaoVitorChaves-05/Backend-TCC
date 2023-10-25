@@ -41,7 +41,7 @@ class User {
         const file_path = Upload.createFolder(username)
         const dest = Upload.moveFile(req.file.path, file_path, filename)
 
-        const result = await UserModel.create({email, username, password, photos: './images/' + username + '/' + filename})
+        const result = await UserModel.create({email, username, password, path: './images/' + username + '/' + filename})
 
         res.status(200).json({message: result.message, auth: null, token: null, success: result.success})
     }

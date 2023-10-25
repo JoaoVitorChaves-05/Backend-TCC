@@ -24,7 +24,6 @@ class App {
         this.app.use('/user', user)
         this.app.use('/group', group)
         this.app.use('/security', security)
-        this.app.use('/teste', (req, res) => res.send('test'))
     }
 }
 

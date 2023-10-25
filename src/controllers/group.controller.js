@@ -1,11 +1,12 @@
 import dotenv from "dotenv"
 import GroupModel from "../models/group.model.js"
+import axios from "axios"
 
 dotenv.config()
 
 class Group {
     constructor() {
-        this.tokens = new Array()
+        this.keys = new Array()
     }
 
     async createGroup(req, res) {
@@ -47,27 +48,37 @@ class Group {
         res.status(200).json(result)
     }
 
-    async createToken(req, res) {
+    async createKey(req, res) {
         const { group_id } = req.body
         const { user_id } = res.locals
 
-        const result = await GroupModel.createToken({ user_id: user_id, group_id: group_id })
+        const result = await GroupModel.createKey({ user_id: user_id, group_id: group_id })
         
-        this.tokens.push({ token: result, group_id: group_id })
+        this.keys.push({ token: result, group_id: group_id })
 
         res.status(200).json(result)
     }
 
     async addUser(req, res) {
-        const { token } = req.body
+        const { key } = req.body
         const { user_id } = res.locals
 
-        const { group_id } = this.tokens.find({ token: token })
+        const { group_id } = this.keys.find({ key: key })
 
         if (group_id) {
             const result = await GroupModel.addUser({user_id, group_id})
 
+            if (result.status) {
+                const formData = new FormData()
+                formData.append('user_id', user_id)
+                formData.append('group_id', group_id)
+                const processPhoto = await axios.post('http://localhost:8080/group/', formData)
+                .then(res => res)
+                .catch(err => console.log(err))
+            }
+
             res.status(200).json(result)
+            return
         }
 
         res.status(200).json({ message: 'This token is not exists'})
