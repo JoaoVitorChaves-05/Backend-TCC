@@ -13,7 +13,6 @@ class Auth {
     validateSession(req, res, next) {
         const token = req.body.token ? req.body.token : req.query.token
 
-
         console.log(token)
 
         const result = jwt.verify(token, process.env.SECRET_KEY)

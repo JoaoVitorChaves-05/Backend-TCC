@@ -13,6 +13,14 @@ class User {
         const user_id = res.locals.user_id
         const data = req.body
 
+        if (req.file) {
+            const filename = req.file.filename
+            const file_path = Upload.createFolder(username)
+            const dest = Upload.moveFile(req.file.path, file_path, filename)
+
+            
+        }
+
         const result = await UserModel.update({
             user_id: user_id,
             email: data.email,

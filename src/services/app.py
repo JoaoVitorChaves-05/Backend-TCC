@@ -43,7 +43,7 @@ class App:
                 self.encodings[group_id].append({'user_id': user_id, 'encode_photo': encode_photo})
                 return {'status': True}
         except:
-            pass
+            return {'status': False}
 
     def load_all_encodings(self):
         cursor = self.conn.cursor()

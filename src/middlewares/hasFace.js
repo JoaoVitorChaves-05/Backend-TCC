@@ -20,5 +20,6 @@ export default async function hasFace(req, res, next) {
         return
     }
 
-    res.status(200).json({ message: 'Any file has been uploaded' })
+    next()
+    //res.status(200).json({ message: 'Any file has been uploaded' })
 }

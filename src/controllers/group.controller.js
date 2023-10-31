@@ -54,7 +54,7 @@ class Group {
 
         const result = await GroupModel.createKey({ user_id: user_id, group_id: group_id })
         
-        this.keys.push({ token: result, group_id: group_id })
+        this.keys.push({ key: result, group_id: group_id })
 
         res.status(200).json(result)
     }
@@ -66,22 +66,26 @@ class Group {
         const { group_id } = this.keys.find({ key: key })
 
         if (group_id) {
-            const result = await GroupModel.addUser({user_id, group_id})
 
-            if (result.status) {
-                const formData = new FormData()
-                formData.append('user_id', user_id)
-                formData.append('group_id', group_id)
-                const processPhoto = await axios.post('http://localhost:8080/group/', formData)
-                .then(res => res)
-                .catch(err => console.log(err))
+            const formData = new FormData()
+            formData.append('user_id', user_id)
+            formData.append('group_id', group_id)
+            const processPhoto = await axios.post('http://localhost:8080/group/', formData)
+            .then(res => res.data)
+            .catch(err => console.log(err))
+
+
+            if (processPhoto.status && user_id && group_id) {
+                const result = await GroupModel.addUser({user_id, group_id})
+                res.status(200).json(result)
+                return
             }
 
-            res.status(200).json(result)
+            res.status(200).json({ message: 'The user has not been added', status: false})
             return
         }
 
-        res.status(200).json({ message: 'This token is not exists'})
+        res.status(200).json({ message: 'This token is not exists', status: false})
     }
 
     async removeUser(req, res) {
@@ -108,6 +112,19 @@ class Group {
         const result = await GroupModel.removeCamera({group_id, camera_id})
 
         res.status(200).json(result)
+    }
+
+    async updatePermissions(req, res) {
+        const { user_id, group_id, changeToAdmin } = req.body
+        const admin_id = res.locals.user_id
+
+        if (user_id && group_id && admin_id && changeToAdmin) {
+            const result = await GroupModel.updatePermissions({ admin_id: admin_id, user_id: user_id, group_id: group_id, changeToAdmin: changeToAdmin })
+            res.status(200).json(result)
+            return
+        }
+
+        res.status(200).json({ message: 'Some data is missing. Try again later.', status: false})
     }
 }
 

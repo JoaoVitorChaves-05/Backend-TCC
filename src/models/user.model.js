@@ -43,7 +43,7 @@ export default class UserModel {
         return { success: false, message: 'The data has an error. Please try again' }
     }
 
-    static async update({user_id, email, username, newPassword}) {
+    static async update({user_id, email, username, newPassword, file_path}) {
         if (newPassword) {
             if (validateData([email, username, newPassword])) {
                 const passwordHash = bcrypt.hashSync(newPassword)
@@ -54,10 +54,10 @@ export default class UserModel {
                     password_hash: passwordHash    
                 }, { user_id: user_id })
 
-                return { message: 'The credentials has changed with succesfully.' }
+                return { message: 'The credentials has changed with succesfully.', status: true }
             }
 
-            return { message: 'The data has an error. Please try again.' }
+            return { message: 'The data has an error. Please try again.', status: false }
         }
 
         if (validateData([email, username, 'valid'])) {
@@ -67,26 +67,38 @@ export default class UserModel {
                 user_name: username
             }, { user_id: user_id })
 
-            return { message: 'The credentials has changed with succesfully.' }
+            return { message: 'The credentials has changed with succesfully.', status: true }
         }
 
-        return { message: 'The data has an error. Please try again.' }
+        if (file_path) {
+            await database.models.Photos.update({
+                where: { user_id: user_id }
+            }, { photo_path: file_path })
+        }
+
+        return { message: 'The data has an error. Please try again.', status: false }
     }
 
     static async getUser({user_id}) {
+
         const user = await database.models.Users.findOne({
             where: {user_id: user_id}
         })
 
-        return user
+        return await user.toJSON()
     }
 
     static async destroyUser({user_id}) {
-        await database.models.Admins.destroy({where: {user_id: user_id}})
-        await database.models.Users.destroy({where: {user_id: user_id}})
-        await database.models.Authorized.destroy({where: {user_id: user_id}})
-
-        return {message: 'The user was deleted with successfully'}
+        try {
+            await database.models.Admins.destroy({where: {user_id: user_id}})
+            await database.models.Users.destroy({where: {user_id: user_id}})
+            await database.models.Authorized.destroy({where: {user_id: user_id}})
+    
+            return {message: 'The user was deleted with successfully', status: true }
+        } catch (err) {
+            return { message: 'An error occurred. Please try again.', status: false }
+        }
+        
     }
 
     static async findUser({username}) {

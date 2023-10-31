@@ -37,7 +37,7 @@ class Upload {
         let newPath = path.join(this.getCurrentPath(), '..', '..', 'images', name)
 
         if (!fs.existsSync(path.join(this.getCurrentPath(), '..', '..', 'images', name))) {
-            fs.mkdirSync(newPath)    
+            fs.mkdirSync(newPath)
         }
         
         return newPath

@@ -6,11 +6,11 @@ import hasFace from "../middlewares/hasFace.js"
 
 const router = new Router()
 
-router.get('/', auth.validateSession, User.getUser)
-router.put('/', auth.validateSession, User.updateUser)
-router.post('/', Upload.upload.single('file'), hasFace, User.createUser)
-router.delete('/', auth.validateSession, auth.deleteSession, User.deleteUser)
+router.get('/', auth.validateSession, User.getUser) // OK
+router.put('/', auth.validateSession, Upload.upload.single('file'), hasFace, User.updateUser) // OK
+router.post('/', Upload.upload.single('file'), hasFace, User.createUser) // OK
+router.delete('/', auth.validateSession, auth.deleteSession, User.deleteUser) // OK
 
-router.post('/signIn', auth.createSession)
+router.post('/signIn', auth.createSession) // OK
 
 export default router

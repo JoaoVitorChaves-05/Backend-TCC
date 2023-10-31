@@ -1,9 +1,11 @@
 import database from "../database/database.js"
 
 const thisGroupExists = async (group_name) => {
-    const findGroup = await database.models.Groups.findOne({
+    const result_findGroup = await database.models.Groups.findOne({
         where: { group_name: group_name }
     })
+
+    const findGroup = result_findGroup.toJSON()
 
     if (findGroup) return { status: true, message: 'This name already exists' }
     return { status: false, message: 'Group created successfully' }
@@ -20,10 +22,12 @@ export default class GroupModel {
         const groupExists = await thisGroupExists(group_name)
         
         if (validateData([group_name, user_id])) {
+
             if (!groupExists.status) {
                 const group = await database.models.Groups.create({ group_name: group_name })
                 await database.models.Admins.create({ user_id: user_id, group_id: group.group_id })
             }
+
             return { message: groupExists.message }
         }
 
@@ -83,7 +87,7 @@ export default class GroupModel {
                 }
             })
 
-            if (admin) {
+            if (admin.toJSON()) {
                 const group = await database.models.Groups.update({
                     group_name: group_name
                 }, {
@@ -112,15 +116,18 @@ export default class GroupModel {
                 }
             })
 
-            if (admin) {
+            if (admin.toJSON()) {
+
                 await database.models.Admin.destroy({
-                    group_id: group_id
+                    where: { group_id: group_id }
                 })
+
                 await database.models.Cameras.destroy({
-                    group_id: group_id
+                    where: { group_id: group_id }
                 })
+
                 await database.models.Authorized.destroy({
-                    group_id: group_id
+                    where: { group_id: group_id }
                 })
 
                 return { message: 'This group has been deleted.' }
@@ -215,35 +222,91 @@ export default class GroupModel {
     }
 
     static async addCamera({user_id, camera_id, group_id}) {
+
+        const admin = await database.models.Admins.findOne({
+            where: {
+                user_id: user_id,
+                group_id: group_id
+            }
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
+
         const camera = await database.models.Cameras.findOne({
             where: {
                 camera_id: camera_id
             }
-        })
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
 
-        if (!camera) {
+        if (!camera && admin) {
+
             await database.models.Cameras.create({
                 group_id,
                 camera_id
             })
 
-            return { message: 'The camera has been added.' }
+            return { message: 'The camera has been added.', status: true }
         }
 
-        return { message: 'This camera has already in another group' }
+        return { message: 'This camera has already in another group', status: false }
     }
 
     static async removeCamera({user_id, group_id, camera_id}) {
-        if (user_id && group_id && camera_id) {
+
+        const admin = await database.models.Admins.findOne({
+            where: {
+                user_id: user_id,
+                group_id: group_id
+            }
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
+
+        if (user_id && group_id && camera_id && admin) {
+
             await database.models.Cameras.destroy({
                 where: {
                     group_id: group_id
                 }
-            })
+            }).then(res => res.toJSON())
+            .catch(err => console.log(err))
 
-            return { message: 'The camera has been removed.' }
+            return { message: 'The camera has been removed.', status: true }
         }
 
-        return { message: 'The camera could not be removed. Try again later.' }
+        return { message: 'The camera could not be removed. Try again later.', status: false }
+        
+    }
+
+    static async updatePermissions({admin_id, user_id, group_id, changeToAdmin}) {
+        const admin = await database.models.Admins.findOne({
+            where: {
+                user_id: admin_id,
+                group_id: group_id
+            }
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
+
+        if (admin) {
+            if (changeToAdmin) {
+                const alreadyAdmin = await database.models.Admins.findOne({
+                    where: {
+                        user_id: admin_id,
+                        group_id: group_id
+                    }
+                }).then(res => res.toJSON())
+                .catch(err => console.log(err))
+
+                if (alreadyAdmin) {
+
+                    return { message: 'This user already an admin', status: false}
+                }
+
+                await database.models.Admins.create({ user_id: user_id, group_id: group_id })
+                return { message: 'This user has new permissions.', status: true}
+            }
+
+            await database.models.Admins.destroy({ user_id: user_id, group_id: group_id})
+            return { message: 'The user is not admin anymore.', status: true }
+        }
     }
 }
