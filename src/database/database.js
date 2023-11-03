@@ -103,7 +103,7 @@ class Database {
         this.models.Authorized = this.connection.define('Authorizeds', {
             authorized_id: {
                 type: DataTypes.INTEGER,
-                primaryKey: true,
+                 primaryKey: true,
                 autoIncrement: true
             },
             group_id: {

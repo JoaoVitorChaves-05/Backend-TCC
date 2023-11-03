@@ -40,7 +40,7 @@ class User {
 
         const result = await UserModel.getUser({user_id: user_id})
 
-        res.status(200).json(result.toJSON())
+        res.status(200).json(result)
     }
 
     async createUser(req, res) {

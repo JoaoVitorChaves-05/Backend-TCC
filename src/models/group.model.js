@@ -36,6 +36,12 @@ export default class GroupModel {
     }
 
     static async getGroup({ user_id }) {
+
+        //Users.belongsToMany(Groups, { through: 'Authorized', foreignKey: 'user_id' })
+        //Users.belongsToMany(Groups, { through: 'Admins', foreignKey: 'user_id' })
+        //Groups.belongsToMany(Users, { through: 'Authorized', foreignKey: 'group_id' })
+        //Groups.belongsToMany(Users, { through: 'Admins', foreignKey: 'group_id' })
+        /*
         if (user_id) {
             const { Admins, Groups, Authorized } = database.models
 
@@ -61,7 +67,7 @@ export default class GroupModel {
                     model: Groups,
                     attributes: ['group_name']
                 }
-            })
+            }) 
 
             const authorizedGroups = result_authorizedGroups.map(authorized => authorized.toJSON())
             
@@ -76,6 +82,38 @@ export default class GroupModel {
             administredGroups: null,
             authorizedGroups: null
         }
+        */
+        
+        const { Users, Groups, Authorized, Photos, Admins } = database.models
+        let result = []
+
+        const groups_id = await Authorized.findAll({
+            where: {
+                user_id: user_id
+            }
+        }).then(res => res.map(el => el.toJSON()))
+        .catch(err => console.log(err))
+
+        const group_names = groups_id.map(async (g_id) => await Groups.findOne({ where: { group_id: g_id} }).then(res => res.toJSON()).catch(err => console.log(err)))
+
+        for (let {group_id} of group_names) {
+            const users_id = await Authorized.findAll({ where: { group_id: group_id }}).then(res => res.toJSON()).catch(err => console.log(err))
+            const user_names = users_id.map(async (el) => await Users.findOne({ where: { user_id: el.user_id}}).then(res => res.toJSON()).catch(err => console.log(err)))
+            let group = {
+                group_id: group_id,
+                authorized_users: user_names
+            }
+
+            group.authorized_users.forEach(async (user) => {
+                user.isAdmin = await Admins.findOne({ where: { user_id: user.user_id, group_id: group_id }}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
+                user.photo_path = await Photos.findOne({ where: { user_id: user.user_id}}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
+            })
+
+            result.push(group)
+        }
+
+        return result
+
     }
 
     static async update({user_id, group_id, group_name}) {
