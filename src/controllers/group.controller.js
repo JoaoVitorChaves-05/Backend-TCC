@@ -22,7 +22,7 @@ class Group {
         const { user_id } = res.locals
 
         const result = await GroupModel.getGroup({ user_id: user_id })
-
+        console.log(result)
         res.status(200).json(result)
     }
 

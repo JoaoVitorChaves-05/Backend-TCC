@@ -23,7 +23,7 @@ class Auth {
             return
         }
 
-        res.locals.user_id = result
+        res.locals.user_id = Number(result)
         next()
         return
     }

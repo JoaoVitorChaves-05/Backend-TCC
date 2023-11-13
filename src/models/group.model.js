@@ -5,15 +5,15 @@ const thisGroupExists = async (group_name) => {
         where: { group_name: group_name }
     })
 
-    const findGroup = result_findGroup.toJSON()
+    const findGroup = result_findGroup ? result_findGroup.toJSON() : null
 
     if (findGroup) return { status: true, message: 'This name already exists' }
     return { status: false, message: 'Group created successfully' }
 }
 
 const validateData = (data) => {
-    if (data[0].trim().length > 0) return false
-    if (typeof data[1] == 'number') return false
+    if (data[0].trim().length == 0) return false
+    if (typeof data[1] != 'number') return false
     return true
 }
 
@@ -21,11 +21,13 @@ export default class GroupModel {
     static async create({ group_name, user_id }) {
         const groupExists = await thisGroupExists(group_name)
         
+        console.log(typeof user_id)
         if (validateData([group_name, user_id])) {
 
             if (!groupExists.status) {
                 const group = await database.models.Groups.create({ group_name: group_name })
                 await database.models.Admins.create({ user_id: user_id, group_id: group.group_id })
+                await database.models.Authorized.create({ user_id: user_id, group_id: group.group_id})
             }
 
             return { message: groupExists.message }
@@ -36,54 +38,6 @@ export default class GroupModel {
     }
 
     static async getGroup({ user_id }) {
-
-        //Users.belongsToMany(Groups, { through: 'Authorized', foreignKey: 'user_id' })
-        //Users.belongsToMany(Groups, { through: 'Admins', foreignKey: 'user_id' })
-        //Groups.belongsToMany(Users, { through: 'Authorized', foreignKey: 'group_id' })
-        //Groups.belongsToMany(Users, { through: 'Admins', foreignKey: 'group_id' })
-        /*
-        if (user_id) {
-            const { Admins, Groups, Authorized } = database.models
-
-            Groups.hasMany(Admins)
-            Admins.belongsTo(Groups, { foreignKey: 'group_id' })
-
-            const result_administredGroups = await Admins.findAll({ 
-                attributes: ['admin_id', 'user_id', 'group_id'],
-                include: {
-                    model: Groups,
-                    attributes: ['group_name']
-                } 
-            })
-
-            const administredGroups = result_administredGroups.map(admin => admin.toJSON())
-
-            Groups.hasMany(Authorized)
-            Authorized.belongsTo(Groups, { foreignKey: 'group_id' })
-
-            const result_authorizedGroups = await Authorized.findAll({
-                attributes: ['authorized_id', 'group_id', 'user_id'],
-                include: {
-                    model: Groups,
-                    attributes: ['group_name']
-                }
-            }) 
-
-            const authorizedGroups = result_authorizedGroups.map(authorized => authorized.toJSON())
-            
-            return {
-                administredGroups: administredGroups,
-                authorizedGroups: authorizedGroups
-            }
-        }
-
-        return { 
-            message: 'This user is invalid',
-            administredGroups: null,
-            authorizedGroups: null
-        }
-        */
-        
         const { Users, Groups, Authorized, Photos, Admins } = database.models
         let result = []
 
@@ -94,11 +48,36 @@ export default class GroupModel {
         }).then(res => res.map(el => el.toJSON()))
         .catch(err => console.log(err))
 
-        const group_names = groups_id.map(async (g_id) => await Groups.findOne({ where: { group_id: g_id} }).then(res => res.toJSON()).catch(err => console.log(err)))
+        console.log(groups_id)
 
+        const group_names = await Promise.all(groups_id.map(
+            async (el) => {
+                try {
+                    const group = await Groups.findOne({ where: { group_id: el.group_id } });
+                    return group.toJSON();
+                } catch (err) {
+                    console.log(err);
+                    // Você pode escolher retornar algum valor padrão ou tratar o erro de outra forma, se necessário.
+                }
+            }
+        ))
+
+        console.log('group names', group_names)
         for (let {group_id} of group_names) {
-            const users_id = await Authorized.findAll({ where: { group_id: group_id }}).then(res => res.toJSON()).catch(err => console.log(err))
-            const user_names = users_id.map(async (el) => await Users.findOne({ where: { user_id: el.user_id}}).then(res => res.toJSON()).catch(err => console.log(err)))
+            const users_id = await Authorized.findAll({ where: { group_id: group_id }}).then(res => res.map(el => el.toJSON())).catch(err => console.log(err))
+            const user_names = await Promise.all(users_id.map(
+                async (el) => {
+                    try {
+                        const user = await Users.findOne({ where: { user_id: el.user_id }})
+                        return user.toJSON()
+                    } catch (err) {
+                        console.log(err)
+                    }
+                }
+            ))
+            
+            console.log('user_names', user_names)
+
             let group = {
                 group_id: group_id,
                 authorized_users: user_names
@@ -111,6 +90,8 @@ export default class GroupModel {
 
             result.push(group)
         }
+
+        console.log('final log', result)
 
         return result
 
