@@ -63,7 +63,7 @@ export default class GroupModel {
         ))
 
         console.log('group names', group_names)
-        for (let {group_id} of group_names) {
+        for (let {group_id, group_name} of group_names) {
             const users_id = await Authorized.findAll({ where: { group_id: group_id }}).then(res => res.map(el => el.toJSON())).catch(err => console.log(err))
             const user_names = await Promise.all(users_id.map(
                 async (el) => {
@@ -80,13 +80,27 @@ export default class GroupModel {
 
             let group = {
                 group_id: group_id,
-                authorized_users: user_names
+                group_name: group_name,
             }
 
+            group.authorized_users = await Promise.all(user_names.map(
+                async (el) => {
+                    try {
+                        el.isAdmin = await Admins.findOne({ where: { user_id: el.user_id, group_id: group_id }}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
+                        el.photo_path = await Photos.findOne({ where: { user_id: el.user_id}}).then(res => res.toJSON()).catch(err => console.log(err))
+                        return el
+                    } catch (err) {
+                        console.log(err)
+                    }
+                }
+            ))
+
+            /*
             group.authorized_users.forEach(async (user) => {
                 user.isAdmin = await Admins.findOne({ where: { user_id: user.user_id, group_id: group_id }}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
                 user.photo_path = await Photos.findOne({ where: { user_id: user.user_id}}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
             })
+            */
 
             result.push(group)
         }
