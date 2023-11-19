@@ -30,6 +30,8 @@ class Group {
         const { group_name, group_id } = req.body
         const { user_id } = res.locals
 
+        console.log('ok')
+
         const result = await GroupModel.update({
             user_id: user_id,
             group_id: group_id,

@@ -30,10 +30,10 @@ export default class GroupModel {
                 await database.models.Authorized.create({ user_id: user_id, group_id: group.group_id})
             }
 
-            return { message: groupExists.message }
+            return { message: groupExists.message, status: true }
         }
 
-        return { message: 'The data is not valid. Try again.' }
+        return { message: 'The data is not valid. Try again.', status: true }
 
     }
 
@@ -95,13 +95,6 @@ export default class GroupModel {
                 }
             ))
 
-            /*
-            group.authorized_users.forEach(async (user) => {
-                user.isAdmin = await Admins.findOne({ where: { user_id: user.user_id, group_id: group_id }}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
-                user.photo_path = await Photos.findOne({ where: { user_id: user.user_id}}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
-            })
-            */
-
             result.push(group)
         }
 
@@ -113,7 +106,7 @@ export default class GroupModel {
 
     static async update({user_id, group_id, group_name}) {
         if (user_id && group_id && group_name.trim()) {
-            const admin = await database.models.Admin.findOne({
+            const admin = await database.models.Admins.findOne({
                 where: {
                     user_id: user_id,
                     group_id: group_id
@@ -129,14 +122,15 @@ export default class GroupModel {
                     }
                 })
 
-                return { message: 'This group has been updated.' }
+                return { message: 'This group has been updated.', status: true }
             }
             
-            return { message: 'You are not authorized to do this.' }
+            return { message: 'You are not authorized to do this.', status: false }
         }
 
         return {
-            message: 'This group is invalid.'
+            message: 'This group is invalid.',
+            status: false
         }
     }
 
