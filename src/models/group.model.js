@@ -113,9 +113,12 @@ export default class GroupModel {
                     user_id: user_id,
                     group_id: group_id
                 }
+            }).then(res => {
+                if (res) return res.toJSON()
+                return res
             })
 
-            if (admin.toJSON()) {
+            if (admin) {
                 const group = await database.models.Groups.update({
                     group_name: group_name
                 }, {
