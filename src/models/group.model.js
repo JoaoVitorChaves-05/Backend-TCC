@@ -54,10 +54,9 @@ export default class GroupModel {
             async (el) => {
                 try {
                     const group = await Groups.findOne({ where: { group_id: el.group_id } });
-                    return group.toJSON();
+                    return group.toJSON()
                 } catch (err) {
-                    console.log(err);
-                    // Você pode escolher retornar algum valor padrão ou tratar o erro de outra forma, se necessário.
+                    console.log(err)
                 }
             }
         ))
@@ -86,7 +85,12 @@ export default class GroupModel {
             group.authorized_users = await Promise.all(user_names.map(
                 async (el) => {
                     try {
-                        el.isAdmin = await Admins.findOne({ where: { user_id: el.user_id, group_id: group_id }}).then(res => res.toJSON()).catch(err => console.log(err)) ? true : false
+                        el.isAdmin = await Admins.findOne({ where: { user_id: el.user_id, group_id: group_id }})
+                        .then(res => {
+                            if (res) return res.toJSON()
+                            return res
+                        })
+                        .catch(err => console.log(err)) ? true : false
                         el.photo_path = await Photos.findOne({ where: { user_id: el.user_id}}).then(res => res.toJSON()).catch(err => console.log(err))
                         return el
                     } catch (err) {
@@ -97,8 +101,6 @@ export default class GroupModel {
 
             result.push(group)
         }
-
-        console.log('final log', result)
 
         return result
 
@@ -169,23 +171,26 @@ export default class GroupModel {
     }
 
     static async createKey({user_id, group_id}) {
-        const admin = await database.models.Admin.findOne({
+        const admin = await database.models.Admins.findOne({
             where: {
                 user_id: user_id,
                 group_id: group_id
             }
-        }).toJSON()
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
 
         if (admin) {
-            const key = ''
+            let key = ''
 
             for (let n_sorteio = 4; n_sorteio > 0; n_sorteio--) {
                 const number = Math.floor(Math.random() * 10)
                 key += number.toString()
             }
 
-            return key
+            return { message: 'Insert this key to join in group: ' + key, key , status: true }
         }
+
+        return { message: 'You are not the admin.', status: false }
     }
 
     static async addUser({user_id, group_id}) {
@@ -194,7 +199,11 @@ export default class GroupModel {
                 user_id: user_id,
                 group_id: group_id
             }
-        }).toJSON()
+        }).then(res => {
+            if (res)
+                return res.toJSON()
+            return res
+        }).catch(err => console.log(err))
 
         if (!user) {
             await database.models.Authorized.create({
@@ -214,27 +223,100 @@ export default class GroupModel {
                 user_id: user_admin_id,
                 group_id: group_id
             }
-        }).toJSON()
+        }).then(res => {
+            if (res) return res.toJSON()
+            return res
+        })
+        .catch(err => console.log(err))
 
-        if (!user) {
+        if (user) {
             await database.models.Authorized.destroy({
                 where: {
-                    user_id: user_id
+                    user_id: user_id,
+                    group_id: group_id
                 }
             })
 
-            return { message: 'The user has been removed.' }
+            await database.models.Admins.destroy({
+                where: {
+                    user_id: user_id,
+                    group_id: group_id
+                }
+            })
+
+            return { message: 'The user has been removed.', status: true }
         }
 
-        return { message: 'You can not authorized to remove this user.' }
+        return { message: 'You can not authorized to remove this user.', status: false }
+    }
+
+    static async exitGroup({group_id, user_id}) {
+        console.log('group_id: ', group_id)
+        console.log('user_id: ', user_id)
+        const isAdmin = await database.models.Admins.findOne({
+            where: {
+                user_id: user_id,
+                group_id: group_id
+            }
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
+
+        await database.models.Authorized.destroy({
+            where: {
+                user_id: user_id,
+                group_id: group_id
+            }
+        }).then(res => res)
+        .catch(err => console.log(err))
+
+        if (isAdmin) {
+            const admins = await database.models.Admins.findAll({
+                where: {
+                    user_id: user_id,
+                    group_id: group_id
+                }
+            }).then(res => res.map(el => el.toJSON()))
+            .catch(err => console.log(err))
+            
+            await database.models.Admins.destroy({
+                where: {
+                    user_id: user_id,
+                    group_id: group_id
+                }
+            }).then(res => res)
+            .catch(err => console.log(err))
+            
+            if (admins.length == 1) {
+
+                await database.models.Authorized.destroy({
+                    where: { 
+                        group_id: group_id
+                    }
+                })
+                
+                await database.models.Groups.destroy({
+                    where: {
+                        group_id: group_id
+                    }
+                })
+
+                return { message: 'The group was deleted because it only had one admin.', status: true}
+            }
+
+        }
+
+        return { message: 'You exited the group.', status: true}
+
     }
 
     static async updateToAdmin({user_admin_id, user_id, group_id}) {
         const isAdmin = await database.models.Admins.findOne({
             where: {
-                user_id: user_admin_id
+                user_id: user_admin_id,
+                group_id: group_id
             }
-        }).toJSON()
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
 
         if (!isAdmin) {
             await database.models.Admins.create({
@@ -310,17 +392,23 @@ export default class GroupModel {
                 user_id: admin_id,
                 group_id: group_id
             }
-        }).then(res => res.toJSON())
+        }).then(res => {
+            if (res) return res.toJSON()
+            return res
+        })
         .catch(err => console.log(err))
 
         if (admin) {
             if (changeToAdmin) {
                 const alreadyAdmin = await database.models.Admins.findOne({
                     where: {
-                        user_id: admin_id,
+                        user_id: user_id,
                         group_id: group_id
                     }
-                }).then(res => res.toJSON())
+                }).then(res => {
+                    if (res) return res.toJSON()
+                    return res
+                })
                 .catch(err => console.log(err))
 
                 if (alreadyAdmin) {
@@ -329,11 +417,16 @@ export default class GroupModel {
                 }
 
                 await database.models.Admins.create({ user_id: user_id, group_id: group_id })
-                return { message: 'This user has new permissions.', status: true}
+                return { message: 'This user has new permissions.', status: true }
             }
 
-            await database.models.Admins.destroy({ user_id: user_id, group_id: group_id})
+            await database.models.Admins.destroy({ where: { 
+                user_id: user_id, 
+                group_id: group_id
+            }})
             return { message: 'The user is not admin anymore.', status: true }
         }
+
+        return { message: 'You do not have permission to change this permissions.', status: false }
     }
 }

@@ -11,11 +11,21 @@ const validateData = (data) => {
 const thisDataExists = async (data) => {
     const findEmail = await database.models.Users.findOne({
         where: { email: data.email }
+    }).then(res => {
+        if (res)
+            return res.toJSON()
+        return res
     })
+    .catch(err => console.log(err))
 
     const findUsername = await database.models.Users.findOne({
         where: { user_name: data.username }
+    }).then(res => {
+        if (res)
+            return res.toJSON()
+        return res
     })
+    .catch(err => console.log(err))
 
     if (findEmail) return { status: true, message: 'Este email já está cadastrado' }
     if (findUsername) return { status: true, message: 'Este nome de usuário já está cadastrado' } 
@@ -30,17 +40,17 @@ export default class UserModel {
         
         const dataExists = await thisDataExists({email, username})
         if (dataExists.status)
-            return dataExists.message
+            return dataExists
         
         if (validateData([email, username, password])) {
             const passwordHash = bcrypt.hashSync(password)
             const newUser = await database.models.Users.create({email, user_name: username, password_hash: passwordHash})
             const userId = await newUser.toJSON().user_id
             await database.models.Photos.create({user_id: userId, photo_path: path})
-            return { success: true, message: 'User created successfully. Please enter your credentials to continue', newId: newUser.toJSON().user_id}
+            return { status: true, message: 'User created successfully. Please enter your credentials to continue', newId: newUser.toJSON().user_id}
         }
 
-        return { success: false, message: 'The data has an error. Please try again' }
+        return { status: false, message: 'The data has an error. Please try again' }
     }
 
     static async update({user_id, email, username, newPassword, file_path}) {
@@ -104,8 +114,9 @@ export default class UserModel {
     static async findUser({username}) {
         const user = await database.models.Users.findOne({
             where: {user_name: username}
-        })
+        }).then(res => res.toJSON())
+        .catch(err => console.log(err))
 
-        return await user.toJSON()
+        return user
     }
 }

@@ -37,14 +37,16 @@ class Auth {
 
         console.log('result', result)
 
-        const match = bcryptjs.compareSync(password, result.password_hash)
+        if (result) {
+            const match = bcryptjs.compareSync(password, result.password_hash)
 
-        console.log('match', match)
-
-        if (match && result) {
-            const token = jwt.sign(result.user_id, process.env.SECRET_KEY)
-            res.status(200).json({message: 'Session created.', token: token, auth: true})
-            return
+            console.log('match', match)
+    
+            if (match) {
+                const token = jwt.sign(result.user_id, process.env.SECRET_KEY)
+                res.status(200).json({message: 'Session created.', token: token, auth: true})
+                return
+            }
         }
 
         res.status(200).json({message: 'Username or password is incorrect.'})

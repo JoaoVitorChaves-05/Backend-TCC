@@ -28,14 +28,17 @@ class App:
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT * FROM Photos WHERE user_id = {user_id}")
 
-        result = cursor.fetchOne()
+        result = cursor.fetchone()
+        print('result:', result)
         photo_path = result[2]
+        print('photo path:', photo_path)
         photo = fr.load_image_file('../' + '.'+ photo_path)
-
+        print('photo:', photo)
         try:
             cursor.close()
             encode_photo = fr.face_encodings(photo)[0]
             if (group_id in self.encodings.values()):
+                print('enter')
                 self.encodings[group_id].append({'user_id': user_id, 'encode_photo': encode_photo})
                 return {'status': True}
             else:

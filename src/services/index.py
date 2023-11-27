@@ -18,9 +18,11 @@ def face_route():
 @app.route('/group', methods=['POST'])
 def addUser():
     if request.method == 'POST':
+        print('group')
         user_id = request.form.get('user_id')
         group_id = request.form.get('group_id')
         status = app_controller.app.add_user_to_group(user_id, group_id)
+        print(status)
         return status
     
 @app.route('/hasFace', methods=['POST'])

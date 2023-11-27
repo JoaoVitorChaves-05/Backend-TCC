@@ -7,6 +7,8 @@ dotenv.config()
 class Group {
     constructor() {
         this.keys = new Array()
+        this.createKey = this.createKey.bind(this)
+        this.addUser = this.addUser.bind(this)
     }
 
     async createGroup(req, res) {
@@ -51,12 +53,12 @@ class Group {
     }
 
     async createKey(req, res) {
-        const { group_id } = req.body
+        const { group_id } = req.query 
         const { user_id } = res.locals
 
         const result = await GroupModel.createKey({ user_id: user_id, group_id: group_id })
         
-        this.keys.push({ key: result, group_id: group_id })
+        this.keys.push({ key: result.key, group_id: group_id, message: result.message })
 
         res.status(200).json(result)
     }
@@ -65,14 +67,18 @@ class Group {
         const { key } = req.body
         const { user_id } = res.locals
 
-        const { group_id } = this.keys.find({ key: key })
+        const { group_id } = this.keys.find((el) => {
+            console.log(el)
+            if (el.key === key) return el
+        }) || {}
+        console.log(user_id)
 
         if (group_id) {
 
             const formData = new FormData()
             formData.append('user_id', user_id)
             formData.append('group_id', group_id)
-            const processPhoto = await axios.post('http://localhost:8080/group/', formData)
+            const processPhoto = await axios.post(`http://127.0.0.1:8080/group`, formData)
             .then(res => res.data)
             .catch(err => console.log(err))
 
@@ -93,9 +99,12 @@ class Group {
     async removeUser(req, res) {
         const { group_id, user_to_remove_id } = req.body
         const { user_id } = res.locals
+        let result
 
-        const result = await GroupModel.removeUser({user_admin_id: user_id, user_id: user_to_remove_id, group_id})
-        
+        if (user_to_remove_id)
+            result = await GroupModel.removeUser({user_admin_id: user_id, user_id: user_to_remove_id, group_id})
+        else
+            result = await GroupModel.exitGroup({group_id, user_id})
         res.status(200).json(result)
     }
 
@@ -120,7 +129,8 @@ class Group {
         const { user_id, group_id, changeToAdmin } = req.body
         const admin_id = res.locals.user_id
 
-        if (user_id && group_id && admin_id && changeToAdmin) {
+        console.log(user_id, group_id, changeToAdmin, admin_id)
+        if (user_id && group_id && admin_id) {
             const result = await GroupModel.updatePermissions({ admin_id: admin_id, user_id: user_id, group_id: group_id, changeToAdmin: changeToAdmin })
             res.status(200).json(result)
             return
