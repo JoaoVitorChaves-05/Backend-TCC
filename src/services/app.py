@@ -19,26 +19,23 @@ class App:
         try:
             photo = fr.load_image_file(photo_path)
             encode_photo = fr.face_encodings(photo)[0]
-            print(encode_photo)
             return {'status': True}
         except:
             return {'status': False}
         
     def add_user_to_group(self, user_id, group_id):
+        print('user_id', user_id)
+        print('group_id', group_id)
         cursor = self.conn.cursor()
         cursor.execute(f"SELECT * FROM Photos WHERE user_id = {user_id}")
 
         result = cursor.fetchone()
-        print('result:', result)
         photo_path = result[2]
-        print('photo path:', photo_path)
         photo = fr.load_image_file('../' + '.'+ photo_path)
-        print('photo:', photo)
         try:
             cursor.close()
             encode_photo = fr.face_encodings(photo)[0]
             if (group_id in self.encodings.values()):
-                print('enter')
                 self.encodings[group_id].append({'user_id': user_id, 'encode_photo': encode_photo})
                 return {'status': True}
             else:
@@ -53,31 +50,38 @@ class App:
         cursor.execute("SELECT a.user_id, a.group_id, p.photo_path FROM Authorizeds as a JOIN Photos as p ON a.user_id = p.user_id;")
         
         result = cursor.fetchall()
-        print(result, len(result))
+        groups_id = []
+
         for row in result:
-            photo_path = row[2]
-            print("Loading image: ", '../' + '.'+ photo_path)
-            photo = fr.load_image_file('../' + '.'+ photo_path)
+            groups_id.append(row[1])
+        groups_id = set(groups_id)
+
+        for g_id in groups_id:
+            self.encodings[g_id] = []
+
+        for row in result:
             try:
+                photo_path = row[2]
+                photo = fr.load_image_file('../' + '.' + photo_path)
                 encode_photo = fr.face_encodings(photo)[0]
-                if (row[1] in self.encodings.values()):
-                    self.encodings[row[1]].append({'user_id': row[0], 'encode_photo': encode_photo})
-                else:
-                    self.encodings[row[1]] = []
-                    self.encodings[row[1]].append({'user_id': row[0], 'encode_photo': encode_photo})
-                print(self.encodings)
+                self.encodings[row[1]].append({'user_id': row[0], 'encode_photo': encode_photo})
             except:
                 pass
+
         cursor.close()
         
     def load_user_encodings(self, file):
-        photo = fr.load_image_file(file)
-        encode_photo = fr.face_encodings(photo)[0]
-        return encode_photo
+        try:
+            photo = fr.load_image_file(file)
+            encode_photo = fr.face_encodings(photo)[0]
+            return encode_photo
+        except:
+            return None
     
     def compare_encodings(self, user_encoding, group_id):
+
         for encoding in self.encodings[int(group_id)]:
-            compare = fr.compare_faces([user_encoding], encoding.encode_photo)
+            compare = fr.compare_faces([user_encoding], encoding['encode_photo'])
             if compare[0] == True:
                 return {'status': True}
         return {'status': False}

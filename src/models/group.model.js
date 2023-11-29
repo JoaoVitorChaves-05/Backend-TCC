@@ -221,7 +221,7 @@ export default class GroupModel {
     }
 
     static async removeUser({user_admin_id, user_id, group_id}) {
-        const user = await database.models.Authorized.findOne({
+        const user = await database.models.Admins.findOne({
             where: {
                 user_id: user_admin_id,
                 group_id: group_id

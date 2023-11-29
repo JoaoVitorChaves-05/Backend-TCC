@@ -12,8 +12,10 @@ def face_route():
         photo = request.form.get('path')
         group_id = request.form.get('group_id')
         user_encoding = app_controller.app.load_user_encodings(photo)
-        compare = app_controller.app.compare_encodings(user_encoding, group_id)
-        return compare
+        if (type(user_encoding) != None):
+            compare = app_controller.app.compare_encodings(user_encoding, group_id)
+            return compare
+        return { 'status': False }
 
 @app.route('/group', methods=['POST'])
 def addUser():
