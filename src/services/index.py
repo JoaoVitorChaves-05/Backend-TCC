@@ -16,6 +16,23 @@ def face_route():
             compare = app_controller.app.compare_encodings(user_encoding, group_id)
             return compare
         return { 'status': False }
+    if request.method == 'PUT':
+        photo = request.form.get('path')
+        user_id = request.form.get('user_id')
+        user_encoding = app_controller.app.load_user_encodings(photo)
+
+        if (not user_encoding):
+            return { 'status': False }
+        
+        groups_to_search = app_controller.app.encodings.keys()
+
+        for group_id in groups_to_search:
+            for user in app_controller.app.encodings[group_id]:
+                if user_id == user['user_id']:
+                    user['encode_photo'] = user_encoding
+                    return { 'status': True }
+        
+        return { 'status': False }
 
 @app.route('/group', methods=['POST'])
 def addUser():
